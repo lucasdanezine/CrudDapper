@@ -1,0 +1,14 @@
+﻿@page "/Aluno"
+@inject AlunoAPI alunoApi
+<h3>Aluno</h3>
+
+@alunos.FirstOrDefault();
+
+@code {
+    private ICollection<AlunoResponseDto> alunos;
+
+    protected override async Task OnInitializedAsync()
+    {
+        alunos = await alunoApi.GetAlunosAsync();
+    }
+}

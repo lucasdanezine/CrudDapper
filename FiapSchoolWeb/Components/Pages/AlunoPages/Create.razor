@@ -1,0 +1,65 @@
+﻿@page "/alunos/create"
+@inject FiapSchoolWeb.Data.FiapSchoolWebContext DB
+@inject NavigationManager NavigationManager
+
+<PageTitle>Novo Aluno</PageTitle>
+
+<h1>Adicionar Novo Aluno</h1>
+
+<h4>Aluno</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Aluno" OnValidSubmit="AddAluno" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" />
+            <div class="mb-3">
+                <label for="nome" class="form-label">Nome:</label> 
+                <InputText id="nome" @bind-Value="Aluno.Nome" class="form-control" /> 
+                <ValidationMessage For="() => Aluno.Nome" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="usuario" class="form-label">Usuario:</label> 
+                <InputText id="usuario" @bind-Value="Aluno.Usuario" class="form-control" /> 
+                <ValidationMessage For="() => Aluno.Usuario" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="senha" class="form-label">Senha:</label> 
+                <InputText id="senha" @bind-Value="Aluno.Senha" class="form-control" /> 
+                <ValidationMessage For="() => Aluno.Senha" class="text-danger" /> 
+            </div>        
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/alunos">Voltar para a Lista</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    public Aluno Aluno { get; set; } = new();
+
+    // To protect from overposting attacks, see https://aka.ms/RazorPagesCRUD
+    public async Task AddAluno()
+    {
+        using (SHA256 sha256Hash = SHA256.Create())
+        {
+            byte[] hashedBytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(Aluno.Senha));
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < hashedBytes.Length; i++)
+            {
+                builder.Append(hashedBytes[i].ToString("x2"));
+            }
+
+            Aluno.Senha = builder.ToString();
+        }
+
+        DB.Alunos.Add(Aluno);
+        await DB.SaveChangesAsync();
+
+        NavigationManager.NavigateTo("/alunos");
+    }
+}
+

@@ -1,0 +1,95 @@
+﻿@page "/Alunos/edit"
+@inject FiapSchoolWeb.Data.FiapSchoolWebContext DB
+@inject NavigationManager NavigationManager
+
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h4>Aluno</h4>
+<hr />
+@if (Aluno is null)
+{
+    <p><em>Carregando...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Aluno" OnValidSubmit="UpdateAluno" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <input type="hidden" name="Aluno.Id" value="@Aluno.Id" />
+                <div class="mb-3">
+                    <label for="nome" class="form-label">Nome:</label>
+                    <InputText id="nome" @bind-Value="Aluno.Nome" class="form-control" />
+                    <ValidationMessage For="() => Aluno.Nome" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="usuario" class="form-label">Usuario:</label>
+                    <InputText id="usuario" @bind-Value="Aluno.Usuario" class="form-control" />
+                    <ValidationMessage For="() => Aluno.Usuario" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="senha" class="form-label">Senha:</label>
+                    <InputText id="senha" @bind-Value="Aluno.Senha" class="form-control" />
+                    <ValidationMessage For="() => Aluno.Senha" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/alunos">Voltar para a Lista</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    public Aluno? Aluno { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Aluno ??= await DB.Alunos.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Aluno is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more details, see https://aka.ms/RazorPagesCRUD.
+    public async Task UpdateAluno()
+    {
+        DB.Attach(Aluno!).State = EntityState.Modified;
+
+        try
+        {
+            await DB.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!AlunoExists(Aluno!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/alunos");
+    }
+
+    bool AlunoExists(int id)
+    {
+        return DB.Alunos.Any(e => e.Id == id);
+    }
+}

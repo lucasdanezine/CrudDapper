@@ -1,0 +1,21 @@
+﻿@page "/Aluno"
+@inject AlunoAPI alunoApi
+<h3>Alunos</h3>
+
+@if (alunos is not null)
+{
+    @foreach (var aluno in alunos)
+    {
+        <p>@aluno.Nome</p>
+    }       
+}
+
+@code {
+    private ICollection<AlunoResponseDto>? alunos;
+
+    protected override async Task OnInitializedAsync()
+    {
+        
+        alunos = await alunoApi.GetAlunosAsync();
+    }
+}

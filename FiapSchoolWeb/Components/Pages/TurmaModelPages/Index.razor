@@ -1,0 +1,48 @@
+﻿@page "/turmamodels"
+@inject FiapSchoolWeb.Data.FiapSchoolWebContext DB
+@inject NavigationManager NavigationManager
+
+<PageTitle>Turmas</PageTitle>
+
+<h1>Turmas</h1>
+
+<p>
+    <a href="turmamodels/create" class="btn btn-primary">Adicionar Turma</a>
+</p>
+
+<QuickGrid Class="table table-bordered table-dark" Items="DB.Turmas">
+    <PropertyColumn Property="turmamodel => turmamodel.Curso_Id" />
+    <PropertyColumn Property="turmamodel => turmamodel.Turma" />
+    <PropertyColumn Property="turmamodel => turmamodel.Ano" />
+
+    <TemplateColumn Context="turmamodel">
+        @{
+            var buttonText = turmamodel.Situacao ? "Inativar" : "Ativar";
+            var buttonStyle = turmamodel.Situacao ? "btn-danger" : "btn-success";
+        }
+        <tr class="thead-dark">
+            <td scope ="col"><a href="@($"turmamodels/edit?id={turmamodel.Id}")" class="btn btn-primary">Editar</a></td>
+            <td scope="col"><a href="@($"turmamodels/details?id={turmamodel.Id}")" class="btn btn-secondary">Details</a></td>
+            <td scope="col"><button @onclick="() => InativarAtivarTurma(turmamodel)" class="btn @buttonStyle"> @buttonText </button></td>
+        </tr>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    private async Task InativarAtivarTurma(TurmaModel turma)
+    {
+        turma.Situacao = !turma.Situacao;
+
+        DB.Attach(turma).State = EntityState.Modified;
+
+        try
+        {
+            await DB.SaveChangesAsync();
+            NavigationManager.NavigateTo("/turmamodels", true);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

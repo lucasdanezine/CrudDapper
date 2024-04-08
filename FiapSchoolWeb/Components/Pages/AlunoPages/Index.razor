@@ -1,0 +1,48 @@
+﻿@page "/alunos"
+@inject FiapSchoolWeb.Data.FiapSchoolWebContext DB
+@inject NavigationManager NavigationManager
+
+<PageTitle>Alunos</PageTitle>
+
+<h1>Alunos</h1>
+
+<p>
+    <a href="alunos/create" class="btn btn-primary">Adicionar Aluno</a>
+</p>
+
+<QuickGrid Class="table table-bordered table-dark" Items="DB.Alunos">
+    <PropertyColumn Property="aluno => aluno.Nome" />
+    <PropertyColumn Property="aluno => aluno.Usuario" />
+    <PropertyColumn Property="aluno => aluno.Senha" />
+
+    <TemplateColumn Context="aluno">
+        @{
+            var buttonText = aluno.Situacao ? "Inativar" : "Ativar";
+            var buttonStyle = aluno.Situacao ? "btn-danger" : "btn-success";
+        }
+        <tr class="thead-dark">
+            <td scope ="col"><a href="@($"alunos/edit?id={aluno.Id}")" class="btn btn-primary">Editar</a></td>
+            <td scope="col"><a href="@($"alunos/details?id={aluno.Id}")" class="btn btn-secondary">Details</a></td>
+            <td scope="col"><button @onclick="() => InativarAtivarAluno(aluno)" class="btn @buttonStyle"> @buttonText </button></td>
+        </tr>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    private async Task InativarAtivarAluno(Aluno aluno)
+    {
+        aluno.Situacao = !aluno.Situacao;
+
+        DB.Attach(aluno).State = EntityState.Modified;
+
+        try
+        {
+            await DB.SaveChangesAsync();
+            NavigationManager.NavigateTo("/alunos", true);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

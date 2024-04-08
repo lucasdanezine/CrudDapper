@@ -1,0 +1,6 @@
+@FiapSchool_HostAddress = http://localhost:5125
+
+GET {{FiapSchool_HostAddress}}/FiapSchool/
+Accept: application/json
+
+###

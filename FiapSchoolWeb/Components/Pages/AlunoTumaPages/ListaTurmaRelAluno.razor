@@ -1,0 +1,85 @@
+﻿@page "/AlunoTumaPages/turmas"
+@inject FiapSchoolWeb.Data.FiapSchoolWebContext DB
+@inject NavigationManager NavigationManager
+<h1>Turmas</h1>
+
+@foreach (var turma in Turmas)
+{
+    var relacionamento = AlunoTurmaModelo.FirstOrDefault(x => x.Turma_Id.Equals(turma.Id));
+    var buttonText = relacionamento != null && relacionamento.Situacao ? "Inativar Relacionamento" : "Ativar Relacionamento";
+    var buttonStyle = relacionamento != null && relacionamento.Situacao ? "btn-danger" : "btn-success";
+
+    @if (relacionamento != null)
+    {
+        <div>
+            <div>
+                <h4>Clique no relacionamento para visualizar a lista de alunos relacionados</h4>
+            <button style="margin:10px;" class="btn btn-primary" @onclick="() => MostrarAlunos(turma.Id)">
+                @turma.Turma - @turma.Ano
+            </button>
+            </div>
+            <div>
+            <button style="margin:10px; @buttonStyle;" class="btn btn-danger" @onclick="() => InativarRelacionamentoTurma(turma.Id)">
+                @buttonText
+            </button>
+            </div>
+        </div>
+    }
+
+}
+
+@if (Alunos != null)
+{
+    @if (Alunos.Any())
+    {
+        <h2>Alunos da Turma:</h2>
+        <ul>
+            @foreach (var aluno in Alunos)
+            {
+                <li><a href="@($"/AlunoTumaPages/associacao/editar/{aluno.Id}")">@aluno.Nome</a></li>
+            }
+        </ul>
+    }
+    else
+    {
+        <p>Não há alunos relacionados a essa turma</p>
+    }
+}
+
+@code {
+    List<TurmaModel> Turmas { get; set; }
+    List<Aluno> Alunos { get; set; }
+    List<AlunoTurmaModel> AlunoTurmaModelo { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Turmas = DB.Turmas.ToList();
+        AlunoTurmaModelo = DB.Aluno_Turma.ToList();
+    }
+
+    async Task MostrarAlunos(int turmaId)
+    {
+        var alunosIds = await DB.Aluno_Turma
+            .Where(x => x.Turma_Id.Equals(turmaId))
+            .Select(x => x.Aluno_Id)
+            .ToListAsync();
+
+        Alunos = await DB.Alunos
+            .Where(a => alunosIds.Contains(a.Id))
+            .ToListAsync();
+    }
+
+    async Task InativarRelacionamentoTurma(int turmaId)
+    {
+        var relacionamentos = await DB.Aluno_Turma.Where(x => x.Turma_Id == turmaId).FirstAsync();
+
+        if (relacionamentos != null)
+        {
+            relacionamentos.Situacao = !relacionamentos.Situacao;
+            await DB.SaveChangesAsync();
+
+            NavigationManager.NavigateTo("/AlunoTumaPages/turmas", true);
+        }
+    }
+}
+

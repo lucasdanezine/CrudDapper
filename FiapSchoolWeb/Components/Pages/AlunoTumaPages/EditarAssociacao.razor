@@ -1,0 +1,97 @@
+﻿@page "/AlunoTumaPages/associacao/editar/{Id}"
+@inject FiapSchoolWeb.Data.FiapSchoolWebContext DB
+@inject NavigationManager NavigationManager
+
+<h3>Editar Associação Aluno-Turma</h3>
+
+@if (mensagemErro != null)
+{
+    <div class="alert alert-danger" role="alert">
+        @mensagemErro
+    </div>
+}
+
+<form>
+    <div class="form-group">
+        <label for="aluno">Selecione o Aluno:</label>
+        <select class="form-control" @bind="alunoSelecionado">
+            <option value="">Selecione um aluno</option>
+            @foreach (var aluno in alunos)
+            {
+                <option value="@aluno.Id" selected="@(@aluno.Id == alunoSelecionado)">@aluno.Nome</option>
+            }
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="turma">Selecione a Turma:</label>
+        <select class="form-control" @bind="turmaSelecionada">
+            <option value="">Selecione uma turma</option>
+            @foreach (var turma in turmas)
+            {
+                <option value="@turma.Id">@turma.Turma</option>
+            }
+        </select>
+    </div>
+
+    <button type="button" class="btn btn-primary" @onclick="SalvarRelacao">Salvar</button>
+</form>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    ICollection<Aluno> alunos = new List<Aluno>();
+    ICollection<TurmaModel> turmas = new List<TurmaModel>();
+
+    int alunoSelecionado;
+    int turmaSelecionada;
+    string mensagemErro;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            alunos = await DB.Alunos.ToListAsync();
+            turmas = await DB.Turmas.ToListAsync();
+
+            // Encontrar o aluno correspondente ao ID passado
+            var alunoCorrespondente = alunos.FirstOrDefault(a => a.Id == int.Parse(Id));
+            if (alunoCorrespondente != null)
+            {
+                alunoSelecionado = alunoCorrespondente.Id;
+            }
+            else
+            {
+                // Lógica para lidar com o ID de aluno inválido
+            }
+        }
+        catch (Exception ex)
+        {
+            mensagemErro = ex.Message;
+        }
+    }
+
+    public async Task SalvarRelacao()
+    {
+        if (alunoSelecionado == 0 || turmaSelecionada == 0)
+        {
+            mensagemErro = "Selecione um aluno e uma turma.";
+            return;
+        }
+
+        var alunoTurma = await DB.Aluno_Turma.FirstOrDefaultAsync(at => at.Aluno_Id == alunoSelecionado && at.Turma_Id == turmaSelecionada);
+        if (alunoTurma == null)
+        {
+            // Criar uma nova relação
+            alunoTurma = new AlunoTurmaModel
+                {
+                    Aluno_Id = alunoSelecionado,
+                    Turma_Id = turmaSelecionada,
+                    Situacao = true
+                };
+            DB.Aluno_Turma.Add(alunoTurma);
+        }
+        await DB.SaveChangesAsync();
+        NavigationManager.NavigateTo("/AlunoTumaPages/associacao");
+    }
+}

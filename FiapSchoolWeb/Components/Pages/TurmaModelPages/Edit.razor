@@ -1,0 +1,94 @@
+﻿@page "/TurmaModels/edit"
+@inject FiapSchoolWeb.Data.FiapSchoolWebContext DB
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h4>TurmaModel</h4>
+<hr />
+@if (TurmaModel is null)
+{
+    <p><em>Carregando...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="TurmaModel" OnValidSubmit="UpdateTurmaModel" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <input type="hidden" name="TurmaModel.Id" value="@TurmaModel.Id" />
+                <div class="mb-3">
+                    <label for="curso_id" class="form-label">Curso_Id:</label>
+                    <InputNumber id="curso_id" @bind-Value="TurmaModel.Curso_Id" class="form-control" />
+                    <ValidationMessage For="() => TurmaModel.Curso_Id" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="turma" class="form-label">Turma:</label>
+                    <InputText id="turma" @bind-Value="TurmaModel.Turma" class="form-control" />
+                    <ValidationMessage For="() => TurmaModel.Turma" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="ano" class="form-label">Ano:</label>
+                    <InputNumber id="ano" @bind-Value="TurmaModel.Ano" class="form-control" />
+                    <ValidationMessage For="() => TurmaModel.Ano" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/turmamodels">Voltar para a Lista</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    public TurmaModel? TurmaModel { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        TurmaModel ??= await DB.Turmas.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (TurmaModel is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more details, see https://aka.ms/RazorPagesCRUD.
+    public async Task UpdateTurmaModel()
+    {
+        DB.Attach(TurmaModel!).State = EntityState.Modified;
+
+        try
+        {
+            await DB.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!TurmaModelExists(TurmaModel!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/turmamodels");
+    }
+
+    bool TurmaModelExists(int id)
+    {
+        return DB.Turmas.Any(e => e.Id == id);
+    }
+}

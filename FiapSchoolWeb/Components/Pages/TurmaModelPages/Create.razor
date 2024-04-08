@@ -1,0 +1,52 @@
+﻿@page "/turmamodels/create"
+@inject FiapSchoolWeb.Data.FiapSchoolWebContext DB
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create</PageTitle>
+
+<h1>Create</h1>
+
+<h4>TurmaModel</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="TurmaModel" OnValidSubmit="AddTurmaModel" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" />
+            <div class="mb-3">
+                <label for="curso_id" class="form-label">Curso_Id:</label> 
+                <InputNumber id="curso_id" @bind-Value="TurmaModel.Curso_Id" class="form-control" /> 
+                <ValidationMessage For="() => TurmaModel.Curso_Id" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="turma" class="form-label">Turma:</label> 
+                <InputText id="turma" @bind-Value="TurmaModel.Turma" class="form-control" /> 
+                <ValidationMessage For="() => TurmaModel.Turma" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="ano" class="form-label">Ano:</label> 
+                <InputNumber id="ano" @bind-Value="TurmaModel.Ano" class="form-control" /> 
+                <ValidationMessage For="() => TurmaModel.Ano" class="text-danger" /> 
+            </div>        
+            <button type="submit" class="btn btn-primary">Criar</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/turmamodels" class="btn btn-secondary">Voltar para a Lista</a>
+</div>
+
+@code {
+
+    [SupplyParameterFromForm]
+    public TurmaModel TurmaModel { get; set; } = new();
+
+    // To protect from overposting attacks, see https://aka.ms/RazorPagesCRUD
+    public async Task AddTurmaModel()
+    {
+        DB.Turmas.Add(TurmaModel);
+        await DB.SaveChangesAsync();
+        NavigationManager.NavigateTo("/turmamodels");
+    }
+}
